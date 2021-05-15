@@ -7,16 +7,20 @@ const config = {
 const getClanInfo = async (clanTag) => {
     return new Promise(async (resolve, reject) => {
         try{
-            const {data = {}} = await axios.get(
+            const response = await axios.get(
                 'https://api.clashofclans.com/v1/clans/' + clanTag,
                 config
             );
+            const data = {
+                "status": response.status,
+                "data": response.data
+            }
             resolve(data);
         }catch(e){
             if(e.response){
                 const errorMsg = {
                     "status": e.response.status,
-                    "reason": e.response.data.reason
+                    "data": e.response.data
                 }
                 return reject(errorMsg)
             }
@@ -28,16 +32,20 @@ const getClanInfo = async (clanTag) => {
 const getPlayer = (playerTag) => {
     return new Promise(async (resolve, reject) => {
         try{
-            const {data = {}} = await axios.get(
+            const response = await axios.get(
                 'https://api.clashofclans.com/v1/players/' + playerTag,
                 config
             );
+            const data = {
+                "status": response.status,
+                "data": response.data
+            }
             resolve(data);
         }catch(e){
             if(e.response){
                 const errorMsg = {
                     "status": e.response.status,
-                    "reason": e.response.data.reason
+                    "data": e.response.data
                 }
                 return reject(errorMsg)
             }
@@ -49,16 +57,20 @@ const getPlayer = (playerTag) => {
 const getWarLog = (clanTag) => {
     return new Promise(async (resolve, reject) => {
         try{
-            const {data = {}} = await axios.get(
+            const response = await axios.get(
                 'https://api.clashofclans.com/v1/clans/' + clanTag + '/warlog',
                 config
             );
+            const data = {
+                "status": response.status,
+                "data": response.data
+            }
             resolve(data);
         }catch(e){
             if(e.response){
                 const errorMsg = {
                     "status": e.response.status,
-                    "reason": e.response.data.reason
+                    "data": e.response.data
                 }
                 return reject(errorMsg)
             }
@@ -70,16 +82,20 @@ const getWarLog = (clanTag) => {
 const getCurrentWar = (clanTag) => {
     return new Promise(async (resolve, reject) => {
         try{
-            const {data = {}} = await axios.get(
+            const response = await axios.get(
                 'https://api.clashofclans.com/v1/clans/' + clanTag + '/currentwar',
                 config
             );
+            const data = {
+                "status": response.status,
+                "data": response.data
+            }
             resolve(data);
         }catch(e){
             if(e.response){
                 const errorMsg = {
                     "status": e.response.status,
-                    "reason": e.response.data.reason
+                    "data": e.response.data
                 }
                 return reject(errorMsg)
             }
