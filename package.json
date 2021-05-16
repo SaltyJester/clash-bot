@@ -4,7 +4,7 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
+    "test": "env-cmd -f ./config/dev.env jest --watchAll --detectOpenHandles",
     "dev": "env-cmd -f ./config/dev.env node src/index.js"
   },
   "keywords": [],
@@ -15,7 +15,9 @@
     "discord.js": "^12.5.3"
   },
   "devDependencies": {
+    "axios-mock-adapter": "^1.19.0",
     "env-cmd": "^10.1.0",
+    "jest": "^26.6.3",
     "nodemon": "^2.0.7"
   }
 }

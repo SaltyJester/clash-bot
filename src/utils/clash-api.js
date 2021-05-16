@@ -11,11 +11,10 @@ const getClanInfo = async (clanTag) => {
                 'https://api.clashofclans.com/v1/clans/' + clanTag,
                 config
             );
-            const data = {
+            resolve({
                 "status": response.status,
                 "data": response.data
-            }
-            resolve(data);
+            });
         }catch(e){
             if(e.response){
                 const errorMsg = {
@@ -36,11 +35,10 @@ const getPlayer = (playerTag) => {
                 'https://api.clashofclans.com/v1/players/' + playerTag,
                 config
             );
-            const data = {
+            resolve({
                 "status": response.status,
                 "data": response.data
-            }
-            resolve(data);
+            });
         }catch(e){
             if(e.response){
                 const errorMsg = {
@@ -61,11 +59,10 @@ const getWarLog = (clanTag) => {
                 'https://api.clashofclans.com/v1/clans/' + clanTag + '/warlog',
                 config
             );
-            const data = {
+            resolve({
                 "status": response.status,
                 "data": response.data
-            }
-            resolve(data);
+            });
         }catch(e){
             if(e.response){
                 const errorMsg = {
@@ -86,11 +83,10 @@ const getCurrentWar = (clanTag) => {
                 'https://api.clashofclans.com/v1/clans/' + clanTag + '/currentwar',
                 config
             );
-            const data = {
+            resolve({
                 "status": response.status,
                 "data": response.data
-            }
-            resolve(data);
+            });
         }catch(e){
             if(e.response){
                 const errorMsg = {
