@@ -7,6 +7,9 @@
     "test": "env-cmd -f ./config/dev.env jest --watchAll --detectOpenHandles",
     "dev": "env-cmd -f ./config/dev.env node src/index.js"
   },
+  "jest": {
+    "testEnvironment": "node"
+  },
   "keywords": [],
   "author": "",
   "license": "ISC",
