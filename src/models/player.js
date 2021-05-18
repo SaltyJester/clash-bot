@@ -7,6 +7,10 @@ const playerSchema = new mongoose.Schema({
     },
     discordID: {
         type: String
+    },
+    name: {
+        type: String,
+        required: true
     }
 });
 

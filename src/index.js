@@ -1,28 +1,38 @@
 const clashApi = require('./utils/clash-api');
 const warWatch = require('./scripts/war-watch');
-const discord = require('discord.js');
-const client = new discord.Client();
+// const discord = require('discord.js');
+// const client = new discord.Client();
 require('./db/mongoose');
+
+const maintainDB = require('./scripts/maintain-db');
 
 const botToken = process.env.BOT_TOKEN;
 
-client.login(botToken);
+// client.login(botToken);
 
 // client.once('ready', () => {
 //     console.log(`Logged in as ${client.user.tag}!`);
 
-//     try{
-//         const checkWarLoop = setInterval(async () => {
-//             warWatch.remindPlayers(process.env.CLAN_TAG);
-//         }, 5000);
-//     }catch(e){
-//         console.log(e);
-//     }
+//     // maintainDB.updatePlayerDB();
+
+//     // try{
+//     //     const checkWarLoop = setInterval(async () => {
+//     //         warWatch.remindPlayers(process.env.CLAN_TAG);
+//     //     }, 5000);
+//     // }catch(e){
+//     //     console.log(e);
+//     // }
 //   });
 
-client.on('message', () => {
+// client.on('message', () => {
 
-});
+// });
+
+
+
+maintainDB.updatePlayers();
+
+
 
 // client.on('ready', () => {
 //     client.channels.cache.get(process.env.CHANNEL_ID).send('Fuck you');
