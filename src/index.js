@@ -1,14 +1,15 @@
 const clashApi = require('./utils/clash-api');
 const warWatch = require('./scripts/war-watch');
-// const discord = require('discord.js');
-// const client = new discord.Client();
+const discord = require('discord.js');
+const client = new discord.Client();
+const {linkPlayer} = require('./scripts/link-accounts');
 require('./db/mongoose');
 
 const maintainDB = require('./scripts/maintain-db');
 
 const botToken = process.env.BOT_TOKEN;
 
-// client.login(botToken);
+client.login(botToken);
 
 // client.once('ready', () => {
 //     console.log(`Logged in as ${client.user.tag}!`);
@@ -24,9 +25,20 @@ const botToken = process.env.BOT_TOKEN;
 //     // }
 //   });
 
-// client.on('message', () => {
+client.on('message', async (msg) => {
+    if(!msg.content.startsWith(process.env.PREFIX) || msg.author.bot){
+        return;
+    }
 
-// });
+    const args = msg.content.slice(process.env.PREFIX.length).trim().split(/ +/);
+    const command = args.shift().toLowerCase();
+
+    // Link discord ID to clash player tag
+    if(command === 'linkplayer'){
+        const result = await linkPlayer(args[0], args[1]);
+        msg.channel.send(result);
+    }
+});
 
 
 
