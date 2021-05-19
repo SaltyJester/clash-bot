@@ -6,6 +6,10 @@ const botStateSchema = new mongoose.Schema({
     isManageWarRunning: {
         type: Boolean,
         required: true
+    },
+    successfulStartUp: {
+        type: Boolean,
+        required: true
     }
 });
 

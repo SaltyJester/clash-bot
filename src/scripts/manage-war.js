@@ -5,7 +5,6 @@ const BotState = require('../models/bot-state');
 // n hours before war ends
 const checkWarLoop = async(clanTag, hours) => {
     try{
-        let i = 1; //this is for testing purposes
         const loop = setInterval(async () => {
             const currentWar = await clashApi.getCurrentWar(clanTag);
             if(currentWar.data.state === 'warEnded'){
@@ -34,14 +33,18 @@ const checkWarLoop = async(clanTag, hours) => {
             const currentTime = new Date();
             if(currentTime.getTime() > (formatedEndTime.getTime() - hoursInMilliseconds)){
                 console.log('Final Hour'); // return list here
+
+                // find people in war and return list of discord id's to message
+
+                botState.isManageWarRunning = false;
+                botState.save();
                 clearInterval(loop);
             }else if(botState.isManageWarRunning === false){
                 console.log('MANUAL STOP');
                 clearInterval(loop);
             }
-            console.log('Loop is running!!! ' + i);
+            console.log('Loop is running!!! ');
             console.log(botState.isManageWarRunning);
-            i += 1; // for testing purposes
         }, 1000); // change time to 5 sceonds in production
     }catch(e){
         throw new Error('Something went wrong in war-watch.js');
