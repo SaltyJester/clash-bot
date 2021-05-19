@@ -1,25 +1,34 @@
 const clashApi = require('./utils/clash-api');
-const {remindPlayers} = require('./scripts/war-watch');
+const {checkWarLoop} = require('./scripts/manage-war');
 const discord = require('discord.js');
 const client = new discord.Client();
 const {linkPlayer} = require('./scripts/link-accounts');
+const BotState = require('./models/bot-state');
 require('./db/mongoose');
 
-const {updatePlayers} = require('./scripts/maintain-db');
+const {updatePlayers} = require('./scripts/maintain-roster');
 
 const botToken = process.env.BOT_TOKEN;
 
 client.login(botToken);
 
-client.once('ready', () => {
+client.once('ready', async () => {
     console.log(`Logged in as ${client.user.tag}!`);
+
+    await BotState.deleteMany();
+    const botState = {
+        isManageWarRunning: false
+    }
+    await new BotState(botState).save();
 
     // adds clan memebers to db, and checks for current war constantly
     try{
-        const loop = setInterval(async () => {
-            await updatePlayers();
-            await remindPlayers(process.env.CLAN_TAG);
-        }, 5000);
+        const test = await BotState.findOne();
+        test.isManageWarRunning = true;
+        // this must be set to true for loop to run
+        await test.save();
+        await updatePlayers();
+        await checkWarLoop(process.env.CLAN_TAG, 2);
     }catch(e){
         console.log(e);
     }
@@ -47,5 +56,12 @@ client.on('message', async (msg) => {
         const result = await linkPlayer(msg.author.id, args[0]);
         const user = client.channels.cache.get(msg.author.id);
         msg.reply(result);
+    }else if(command === "sendreminders"){
+        const test = await BotState.findOne();
+        msg.reply(test.isManageWarRunning);
+    }else if(command === 'cancelreminders'){
+        const botState = await BotState.findOne();
+        botState.isManageWarRunning = false;
+        await botState.save();
     }
 });
