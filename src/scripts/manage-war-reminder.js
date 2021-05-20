@@ -1,5 +1,4 @@
 const clashApi = require('../utils/clash-api');
-const BotState = require('../models/bot-state');
 
 // This should return a list of players that need to be DM'd to attack
 // n hours before war ends
@@ -7,18 +6,21 @@ const getSlackers = async(clanTag, hours) => {
     return new Promise (async (resolve, reject) => {
         try{
             const loop = setInterval(async () => {
+                // need a way to retry getCurrentWar() if it fails
                 const currentWar = await clashApi.getCurrentWar(clanTag);
+                const currentTime = new Date();
+                const hoursInMilliseconds = ((hours*60)*60)*1000;
     
                 if(currentWar.data.state === 'warEnded'){
-                    console.log('war ended');
+                    console.log('currently NOT in war: ' + currentTime.toISOString());
                 }
                 
                 else if(currentWar.data.state === 'preparation'){
-                    console.log('preparation');
+                    console.log('currently in preparation: ' + currentTime.toISOString());
                 }
                 
                 else if(currentWar.data.state === 'inWar'){
-                    console.log('in war');
+                    console.log('currently in war: ' + currentTime.toISOString());
                     
                     const warEndTime = {
                         year: currentWar.data.endTime.slice(0, 4),
@@ -38,20 +40,19 @@ const getSlackers = async(clanTag, hours) => {
                     formatedEndTime.setUTCSeconds(parseInt(warEndTime.second));
                     formatedEndTime.setUTCMilliseconds(0);
             
-                    const botState = await BotState.findOne();
-                    const hoursInMilliseconds = ((hours*60)*60)*1000;
-                    const currentTime = new Date();
                     if(currentTime.getTime() > (formatedEndTime.getTime() - hoursInMilliseconds)){
                         console.log('Final Hour');
         
                         // find people in war and return list of discord id's to message
                         
                         clearInterval(loop);
-                        resolve('dummy data');
+                        return resolve('dummy data');
                     }
-                    console.log('Loop is running!!! ');
                 }
             }, 1000); // change time to 5 sceonds in production
+
+            // add event listener here to stop the loop
+
         }catch(e){
             reject (new Error('Something went wrong in war-watch.js'));
         }

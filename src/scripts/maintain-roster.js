@@ -20,8 +20,9 @@ const updatePlayers = () => {
                     await new Player(player).save()
                 }
                 
-                resolve('Successfully updated database!');
                 // Should update player if fields have changed (or not since tags don't change)
+
+                resolve('Successfully updated database!');
             });            
         }catch(e){
             reject(new Error('Something went wrong in ./scripts/maintain-db.js'));

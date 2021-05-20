@@ -23,11 +23,15 @@ client.on('message', async (msg) => {
 
     // Link discord ID to clash player tag
     if(command === 'linkplayer'){ // Manually add someone else
-        if(args.length != 2){
-            return msg.reply('!linkplayer requires two arguments!');
+        try{
+            if(args.length != 2){
+                return msg.reply('!linkplayer requires two arguments!');
+            }
+            const result = await linkPlayer(args[0], args[1]);
+            msg.reply(result);
+        }catch(e){
+            msg.reply('Something went wrong with linking');
         }
-        const result = await linkPlayer(args[0], args[1]);
-        msg.reply(result);
     }
     
     else if(command === 'linkme'){ // Adds whoever sent the message
@@ -44,10 +48,11 @@ client.on('message', async (msg) => {
     }
     
     else if(command === "setreminders"){
-        msg.reply('Setting war reminders!');
         try{
+            msg.reply('Setting war reminders!');
             await updatePlayers();
             const result = await getSlackers(process.env.CLAN_TAG, 1.5);
+            // do something with result, send messages out
         }catch(e){
             msg.reply('Something went wrong with war reminders');
         }
