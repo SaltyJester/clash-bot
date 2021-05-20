@@ -21,7 +21,7 @@ const getClanInfo = async (clanTag) => {
                     "status": e.response.status,
                     "data": e.response.data
                 }
-                return reject(errorMsg)
+                return reject(errorMsg) // think about throwing errors instead!!!
             }
             reject({ error: "Something went wrong!" });
         }

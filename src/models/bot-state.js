@@ -1,7 +1,6 @@
 const mongoose = require('mongoose');
 
-// This is needed to control manage-war.js globally
-// not sure if this is best practice
+// This is no longer needed, delete this
 const botStateSchema = new mongoose.Schema({
     isManageWarRunning: {
         type: Boolean,
