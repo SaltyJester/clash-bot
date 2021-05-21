@@ -2,7 +2,7 @@ const {getSlackers} = require('./scripts/manage-war-reminder');
 const discord = require('discord.js');
 const client = new discord.Client();
 const {linkPlayer} = require('./scripts/link-accounts');
-const {updatePlayers} = require('./scripts/maintain-roster');
+const {updatePlayers} = require('./scripts/update-roster');
 require('./db/mongoose');
 
 const botToken = process.env.BOT_TOKEN;
@@ -49,10 +49,18 @@ client.on('message', async (msg) => {
     
     else if(command === "setreminders"){
         try{
+            if(args.length != 1){
+                return msg.reply('Incorrect Usage: !setreminders <hours>');
+            }
+
             msg.reply('Setting war reminders!');
             await updatePlayers();
-            const result = await getSlackers(process.env.CLAN_TAG, 1.5);
+            const memberList = await getSlackers(process.env.CLAN_TAG, args[0]);
             // do something with result, send messages out
+            memberList.forEach((member) => {
+                const user = client.users.cache.get(member);
+                user.send('War is going to end in ' + args[0] + ' hour(s). You have attacks remaining!');
+            });
         }catch(e){
             msg.reply('Something went wrong with war reminders');
         }
