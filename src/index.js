@@ -59,7 +59,7 @@ client.on('message', async (msg) => {
             // do something with result, send messages out
             memberList.forEach((member) => {
                 const user = client.users.cache.get(member);
-                user.send('War is going to end in ' + args[0] + ' hour(s). You have attacks remaining!');
+                user.channel.send('War is going to end in ' + args[0] + ' hour(s). You have attacks remaining!');
             });
         }catch(e){
             msg.reply('Something went wrong with war reminders');

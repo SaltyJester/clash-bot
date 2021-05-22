@@ -16,11 +16,11 @@ const getSlackers = async(clanTag, hours) => {
                     console.log('currently NOT in war: ' + currentTime.toISOString());
                 }
                 
-                else if(currentWar.data.state === 'preparation'){
-                    console.log('currently in preparation: ' + currentTime.toISOString());
-                }
+                // else if(currentWar.data.state === 'preparation'){
+                //     console.log('currently in preparation: ' + currentTime.toISOString());
+                // }
                 
-                if(currentWar.data.state === 'inWar'){
+                if(currentWar.data.state === 'preparation'){ // change back to else if
                     console.log('currently in war: ' + currentTime.toISOString());
                     
                     const warEndTime = {
