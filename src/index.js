@@ -1,8 +1,9 @@
-const {getSlackers} = require('./scripts/manage-war-reminder');
+const {getSlackers} = require('./scripts/war-reminders');
+const {getCurrentWar} = require('./utils/clash-api');
 const discord = require('discord.js');
 const client = new discord.Client();
-const {linkPlayer} = require('./scripts/link-accounts');
-const {updatePlayers} = require('./scripts/update-roster');
+const {linkPlayer} = require('./scripts/accounts');
+const {updatePlayers} = require('./scripts/roster');
 require('./db/mongoose');
 
 const botToken = process.env.BOT_TOKEN;
@@ -11,6 +12,7 @@ client.login(botToken);
 
 client.once('ready', async () => {
     console.log(`Logged in as ${client.user.tag}!`);
+    await updatePlayers();
   });
 
 client.on('message', async (msg) => {
@@ -25,7 +27,7 @@ client.on('message', async (msg) => {
     if(command === 'linkplayer'){ // Manually add someone else
         try{
             if(args.length != 2){
-                return msg.reply('!linkplayer requires two arguments!');
+                return msg.reply('Incorrect Usage: !linkplayer <discord_id> <player_tag>');
             }
             const result = await linkPlayer(args[0], args[1]);
             msg.reply(result);
@@ -37,7 +39,7 @@ client.on('message', async (msg) => {
     else if(command === 'linkme'){ // Adds whoever sent the message
         try{
             if(args.length != 1){
-                return msg.reply('!linkme requires your player tag');
+                return msg.reply('Incorrect Usage: !linkme <player_tag>');
             }
             const result = await linkPlayer(msg.author.id, args[0]);
             const user = client.channels.cache.get(msg.author.id);
@@ -47,21 +49,36 @@ client.on('message', async (msg) => {
         }
     }
     
-    else if(command === "setreminders"){
+    else if(command === "autoremind"){
         try{
+            // if reminders are already running, you need to emit something to tell it to stop
             if(args.length != 1){
-                return msg.reply('Incorrect Usage: !setreminders <hours>');
+                return msg.reply('Incorrect Usage: !autoremind <hours>');
             }
 
             msg.reply('Setting war reminders!');
-            await updatePlayers();
-            const memberList = await getSlackers(process.env.CLAN_TAG, args[0]);
-            // do something with result, send messages out
-            memberList.forEach((member) => {
-                const user = client.users.cache.get(member);
-                user.channel.send('War is going to end in ' + args[0] + ' hour(s). You have attacks remaining!');
-            });
+            while(true){
+                try{
+                    let currentWar = await getCurrentWar(process.env.CLAN_TAG);
+                    if(currentWar.data.state === 'warEnded'){ // change to !== in production
+                        msg.channel.send('We have entered a war!');
+                        await updatePlayers();
+                        await getSlackers(currentWar, args[0]);
+                    }
+                }catch(e){
+                    console.log(e);
+                }
+                setTimeout(() => {
+                    // not sure if using while loop and setTimeOut is considered best practice
+                },1000);
+            }
+
+            // memberList.forEach((member) => {
+            //     const user = client.users.cache.get(member);
+            //     msg.channel.send(`${user} War is about to end in ${args[0]} hour(s). You still have to attack!`);
+            // });
         }catch(e){
+            console.log(e);
             msg.reply('Something went wrong with war reminders');
         }
     }

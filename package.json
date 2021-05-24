@@ -5,7 +5,8 @@
   "main": "index.js",
   "scripts": {
     "test": "env-cmd -f ./config/dev.env jest --watchAll --detectOpenHandles",
-    "dev": "env-cmd -f ./config/dev.env node src/index.js"
+    "dev": "env-cmd -f ./config/dev.env node src/index.js",
+    "db": "../mongodb/bin/mongod --dbpath=../mongodb-data"
   },
   "jest": {
     "testEnvironment": "node"
