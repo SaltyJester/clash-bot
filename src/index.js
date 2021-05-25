@@ -42,7 +42,7 @@ client.on('message', async (msg) => {
                 return msg.reply('Incorrect Usage: !linkme <player_tag>');
             }
             const result = await linkPlayer(msg.author.id, args[0]);
-            const user = client.channels.cache.get(msg.author.id);
+            // const user = client.channels.cache.get(msg.author.id);
             msg.reply(result);
         }catch(e){
             msg.reply("Something went wrong with linking");
@@ -57,26 +57,31 @@ client.on('message', async (msg) => {
             }
 
             msg.reply('Setting war reminders!');
-            while(true){
+            let flag = 'start';
+            const hoursInMilliseconds = ((args[0]*60)*60)*1000;
+            const checkInWar = setInterval(async () => {
+                if(flag !== 'start'){
+                    return
+                }
                 try{
                     let currentWar = await getCurrentWar(process.env.CLAN_TAG);
                     if(currentWar.data.state === 'warEnded'){ // change to !== in production
+                        flag = 'stop';
                         msg.channel.send('We have entered a war!');
                         await updatePlayers();
-                        await getSlackers(currentWar, args[0]);
+                        const messageList = await getSlackers(currentWar, hoursInMilliseconds);
+                        messageList.forEach((member) => {
+                            const user = client.users.cache.get(member);
+                            msg.channel.send(`${user} War is about to end in ${args[0]} hour(s). You still have to attack!`);
+                        });
+                        setTimeout(() => {
+                            flag = 'start';
+                        },hoursInMilliseconds + 60000); // 60 second buffer
                     }
                 }catch(e){
                     console.log(e);
                 }
-                setTimeout(() => {
-                    // not sure if using while loop and setTimeOut is considered best practice
-                },1000);
-            }
-
-            // memberList.forEach((member) => {
-            //     const user = client.users.cache.get(member);
-            //     msg.channel.send(`${user} War is about to end in ${args[0]} hour(s). You still have to attack!`);
-            // });
+            }, 1000);
         }catch(e){
             console.log(e);
             msg.reply('Something went wrong with war reminders');
