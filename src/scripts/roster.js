@@ -22,6 +22,8 @@ const updatePlayers = () => {
                 
                 // Should update player if fields have changed (or not since tags don't change)
 
+                // this resolve callback might be called before all the player updates are completed
+                // use map and promise.all instead
                 resolve('Successfully updated database!');
             });            
         }catch(e){

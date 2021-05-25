@@ -4,6 +4,7 @@ const discord = require('discord.js');
 const client = new discord.Client();
 const {linkPlayer} = require('./scripts/accounts');
 const {updatePlayers} = require('./scripts/roster');
+const events = require('events');
 require('./db/mongoose');
 
 const botToken = process.env.BOT_TOKEN;
@@ -13,7 +14,15 @@ client.login(botToken);
 client.once('ready', async () => {
     console.log(`Logged in as ${client.user.tag}!`);
     await updatePlayers();
-  });
+});
+
+let eventEmitter = new events.EventEmitter();
+let yellHalt = () => {
+    eventEmitter.emit('halt');
+}
+
+// Global Variables, oh lord help me
+let fullStop = false;
 
 client.on('message', async (msg) => {
     if(!msg.content.startsWith(process.env.PREFIX) || msg.author.bot){
@@ -51,7 +60,7 @@ client.on('message', async (msg) => {
     
     else if(command === "autoremind"){
         try{
-            // if reminders are already running, you need to emit something to tell it to stop
+            yellHalt();
             if(args.length != 1){
                 return msg.reply('Incorrect Usage: !autoremind <hours>');
             }
@@ -60,12 +69,15 @@ client.on('message', async (msg) => {
             let flag = 'start';
             const hoursInMilliseconds = ((args[0]*60)*60)*1000;
             const checkInWar = setInterval(async () => {
+                console.log('Do you see mee?');
                 if(flag !== 'start'){
-                    return
+                    return;
                 }
+
+                console.log('You should not see me too often if war in progress');
                 try{
                     let currentWar = await getCurrentWar(process.env.CLAN_TAG);
-                    if(currentWar.data.state === 'warEnded'){ // change to !== in production
+                    if(currentWar.data.state !== 'warEnded'){ // change to !== in production
                         flag = 'stop';
                         msg.channel.send('We have entered a war!');
                         await updatePlayers();
@@ -74,14 +86,22 @@ client.on('message', async (msg) => {
                             const user = client.users.cache.get(member);
                             msg.channel.send(`${user} War is about to end in ${args[0]} hour(s). You still have to attack!`);
                         });
-                        setTimeout(() => {
+                        const wait = setTimeout(() => {
                             flag = 'start';
                         },hoursInMilliseconds + 60000); // 60 second buffer
+
+                        eventEmitter.on('halt', () => {
+                            clearInterval(checkInWar);
+                            clearTimeout(wait);
+                            eventEmitter.removeAllListeners();
+                            msg.channel.send('Halting current reminders!');
+                            return;
+                        });
                     }
                 }catch(e){
                     console.log(e);
                 }
-            }, 1000);
+            }, 5000); // change to 5000 for production
         }catch(e){
             console.log(e);
             msg.reply('Something went wrong with war reminders');
@@ -89,6 +109,6 @@ client.on('message', async (msg) => {
     }
     
     else if(command === 'cancelreminders'){
-        // use event emitter here
+        yellHalt();
     }
 });
