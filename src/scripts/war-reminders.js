@@ -3,7 +3,7 @@ const Player = require('../models/player');
 
 // This should return a list of players that need to be DM'd to attack
 // n hours before war ends
-const getSlackers = async(currentWar, hoursInMilliseconds) => {
+const getSlackers = async(currentWar, hours) => {
     return new Promise (async (resolve, reject) => {
         try{
             // need to reformat endTime into a usable standard, such as Unix Time
@@ -28,30 +28,28 @@ const getSlackers = async(currentWar, hoursInMilliseconds) => {
             const endTime = formatedEndTime.getTime();
             const currentTime = new Date().getTime();
             const waitTime = endTime - currentTime;
-            setTimeout(() => {
-                // wait for time to elapse
-            }, waitTime - hoursInMilliseconds);
-
-            const updatedWarInfo = await getCurrentWar(process.env.CLAN_TAG);
-            const slackers = updatedWarInfo.data.clan.members.filter((member) => {
-                if(!member.attacks || member.attacks.length !== 2){
-                    return member;
-                }
-            });
-            let toMessage = [];
-            for(let i = 0; i < slackers.length; i++){
-                const member = await Player.findOne({
-                    playerTag: slackers[i].tag,
-                    discordID: { $exists: true }
+            const hoursInMilliseconds = ((hours*60)*60)*1000;
+            setTimeout(async () => {
+                const updatedWarInfo = await getCurrentWar(process.env.CLAN_TAG);
+                const slackers = updatedWarInfo.data.clan.members.filter((member) => {
+                    if(!member.attacks || member.attacks.length !== 2){
+                        return member;
+                    }
                 });
-                if(member !== null){
-                    toMessage.push(member.discordID);
+                let toMessage = [];
+                for(let i = 0; i < slackers.length; i++){
+                    const member = await Player.findOne({
+                        playerTag: slackers[i].tag,
+                        discordID: { $exists: true }
+                    });
+                    if(member !== null){
+                        toMessage.push(member.discordID);
+                    }
                 }
-            }
-            // console.log(toMessage);
-            return resolve(toMessage);
-
+                return resolve(toMessage);
+            },waitTime - hoursInMilliseconds); // waitTime - hoursInMilliseconds
         }catch(e){
+            console.log(e);
             reject(new Error ('Something went wrong in war-reminders.js'));
         }
     });

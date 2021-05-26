@@ -22,7 +22,7 @@ let yellHalt = () => {
 }
 
 // Global Variables, oh lord help me
-let fullStop = false;
+let reminderFlag = 'down';
 
 client.on('message', async (msg) => {
     if(!msg.content.startsWith(process.env.PREFIX) || msg.author.bot){
@@ -58,53 +58,34 @@ client.on('message', async (msg) => {
         }
     }
     
-    else if(command === "autoremind"){
+    else if(command === "remind"){
+        if(args.length != 1){
+            return msg.reply('Incorrect Usage: !remind <hours>');
+        }
+
+        // if there is a current reminder running, stop it
+        yellHalt();
+
         try{
-            yellHalt();
-            if(args.length != 1){
-                return msg.reply('Incorrect Usage: !autoremind <hours>');
-            }
-
-            msg.reply('Setting war reminders!');
-            let flag = 'start';
-            const hoursInMilliseconds = ((args[0]*60)*60)*1000;
-            const checkInWar = setInterval(async () => {
-                console.log('Do you see mee?');
-                if(flag !== 'start'){
+            const currentWar = await getCurrentWar(process.env.CLAN_TAG);
+            if(currentWar.data.state !== 'warEnded'){ //change to !== in production
+                eventEmitter.on('halt', () => {
+                    msg.channel.send('Halting current reminders!');
                     return;
-                }
+                });
 
-                console.log('You should not see me too often if war in progress');
-                try{
-                    let currentWar = await getCurrentWar(process.env.CLAN_TAG);
-                    if(currentWar.data.state !== 'warEnded'){ // change to !== in production
-                        flag = 'stop';
-                        msg.channel.send('We have entered a war!');
-                        await updatePlayers();
-                        const messageList = await getSlackers(currentWar, hoursInMilliseconds);
-                        messageList.forEach((member) => {
-                            const user = client.users.cache.get(member);
-                            msg.channel.send(`${user} War is about to end in ${args[0]} hour(s). You still have to attack!`);
-                        });
-                        const wait = setTimeout(() => {
-                            flag = 'start';
-                        },hoursInMilliseconds + 60000); // 60 second buffer
-
-                        eventEmitter.on('halt', () => {
-                            clearInterval(checkInWar);
-                            clearTimeout(wait);
-                            eventEmitter.removeAllListeners();
-                            msg.channel.send('Halting current reminders!');
-                            return;
-                        });
-                    }
-                }catch(e){
-                    console.log(e);
-                }
-            }, 5000); // change to 5000 for production
+                msg.reply('Setting war reminders!');
+                await updatePlayers();
+                const messageList = await getSlackers(currentWar, args[0]);
+                messageList.forEach((member) => {
+                    const user = client.users.cache.get(member);
+                    msg.channel.send(`${user} War is about to end in ${args[0]} hour(s). You still have to attack!`);
+                });
+                eventEmitter.removeAllListeners();
+            }else{msg.reply('Not currently in war!')}
         }catch(e){
             console.log(e);
-            msg.reply('Something went wrong with war reminders');
+            msg.reply('Something went wrong with war reminders!');
         }
     }
     
