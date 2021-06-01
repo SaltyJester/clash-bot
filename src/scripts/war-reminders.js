@@ -1,12 +1,17 @@
 const {getCurrentWar} = require('../utils/clash-api');
 const Player = require('../models/player');
 
-// This should return a list of players that need to be DM'd to attack
-// n hours before war ends
-const getSlackers = async(currentWar, hours) => {
+/*
+This returns a list of potential players to remind at a certain time (endTime - hours).
+The parameter "hours" indicate how many hours before the war ends should a player be reminded.
+Each index in the list contains an object with the following fields: tag, name, remindTime, endTime
+*/
+const getMessageList = async(clanTag, hours) => {
     return new Promise (async (resolve, reject) => {
         try{
-            // need to reformat endTime into a usable standard, such as Unix Time
+            const currentWar = await getCurrentWar(clanTag);
+
+            // This reformats endTime into a usable standard, Unix Time
             const warEndTime = {
                 year: currentWar.data.endTime.slice(0, 4),
                 month: currentWar.data.endTime.slice(4, 6),
@@ -26,28 +31,21 @@ const getSlackers = async(currentWar, hours) => {
             formatedEndTime.setUTCMilliseconds(0);
 
             const endTime = formatedEndTime.getTime();
-            const currentTime = new Date().getTime();
-            const waitTime = endTime - currentTime;
-            const hoursInMilliseconds = ((hours*60)*60)*1000;
-            setTimeout(async () => {
-                const updatedWarInfo = await getCurrentWar(process.env.CLAN_TAG);
-                const slackers = updatedWarInfo.data.clan.members.filter((member) => {
-                    if(!member.attacks || member.attacks.length !== 2){
-                        return member;
-                    }
-                });
-                let toMessage = [];
-                for(let i = 0; i < slackers.length; i++){
-                    const member = await Player.findOne({
-                        playerTag: slackers[i].tag,
-                        discordID: { $exists: true }
-                    });
-                    if(member !== null){
-                        toMessage.push(member.discordID);
-                    }
+            const remindTime = endTime - ((hours*60)*60)*1000;
+
+            const messageList = [];
+            const members = currentWar.data.clan.members;
+            members.forEach((member) => {
+                const messageObject = {
+                    tag: member.tag,
+                    name: member.name,
+                    remindTime,
+                    endTime
                 }
-                return resolve(toMessage);
-            },waitTime - hoursInMilliseconds); // waitTime - hoursInMilliseconds
+                messageList.push(messageObject);
+            });
+
+            resolve(messageList);
         }catch(e){
             console.log(e);
             reject(new Error ('Something went wrong in war-reminders.js'));
@@ -55,6 +53,11 @@ const getSlackers = async(currentWar, hours) => {
     });
 }
 
+const doubleCheckList = async (reminderList) => {
+    console.log(reminderList)
+}
+
 module.exports = {
-    getSlackers
+    getMessageList,
+    doubleCheckList
 }
