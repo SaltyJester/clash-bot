@@ -37,8 +37,12 @@ client.once('ready', async () => {
         remindList = newRemindList;
     }, 5000) // change to check less frequently for production
     const updateLoop = setInterval(async () => {
-        remindList = await updateRemindList(remindList)
-        console.log(remindList)
+        try{
+            remindList = await updateRemindList(remindList)
+            console.log(remindList)
+        }catch(e){
+            console.log(e);
+        }
     }, 5000); // check this way less freqently
 });
 
